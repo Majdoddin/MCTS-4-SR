@@ -6,11 +6,13 @@
 #include <vector>
 #include <span>
 
+#include "third_party/pcg/pcg_random.hpp"
+
 namespace imcts {
 
 using Scalar = double;
 using Hash   = uint64_t;
-using RandomGenerator = std::mt19937_64;
+using RandomGenerator = pcg_engines::setseq_dxsm_128_64;
 
 struct Range {
     std::size_t start{0};

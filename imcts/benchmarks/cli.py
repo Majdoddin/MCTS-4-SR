@@ -29,6 +29,8 @@ def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--cases", default="all", help="Case ids/names, e.g. all, 1,2,4, 1-4, Nguyen-5.")
     parser.add_argument("--config", type=Path, default=None, help="YAML config path. Defaults depend on the group.")
     parser.add_argument("--runs", type=int, default=None, help="Number of seeds per case.")
+    parser.add_argument("--seed-source", choices=["srbench", "quantum"], default="srbench",
+                        help="Seed list to use: srbench (15-bit, from SRBench 2020) or quantum (32-bit, ANU QRNG).")
     parser.add_argument("--seed-start", type=int, default=None, help="Offset into the fixed benchmark seed list.")
     parser.add_argument("--samples", type=int, default=None, help="Override sample count for synthetic cases.")
     parser.add_argument("--dataset-dir", type=Path, default=None, help="Directory containing black-box dataset subfolders.")

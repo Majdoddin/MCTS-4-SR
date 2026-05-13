@@ -183,7 +183,7 @@ def _run_sequential(
     for case in selected_cases:
         case_rows: list[executor.BenchmarkResult] = []
         for run_index in range(settings.runs):
-            seed = executor.seed_for_run(settings.seed_start, run_index)
+            seed = executor.seed_for_run(settings.seed_start, run_index, settings.seed_source)
             prepared = source.prepare(case, settings, seed, workspace_root)
             result = executor.run_case(group_name, case, run_index, seed, settings, prepared)
             rows.append(result)
@@ -212,7 +212,7 @@ def _run_parallel(
     remaining_runs = {case["name"]: settings.runs for case in selected_cases}
     for run_index in range(settings.runs):
         for case in selected_cases:
-            seed = executor.seed_for_run(settings.seed_start, run_index)
+            seed = executor.seed_for_run(settings.seed_start, run_index, settings.seed_source)
             tasks.append((group_name, case, run_index, seed, settings, settings.source_type, workspace_root))
 
     results: list[executor.BenchmarkResult] = []
@@ -276,6 +276,7 @@ def main(
     print(f"benchmark group : {group_name}")
     print(f"cases           : {', '.join(case['name'] for case in selected_cases)}")
     print(f"runs per case   : {settings.runs}")
+    print(f"seed_source     : {settings.seed_source}")
     print(f"ops             : {','.join(settings.ops)}")
     print(f"c               : {settings.c}")
     print(f"gamma           : {settings.gamma}")

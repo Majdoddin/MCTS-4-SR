@@ -91,6 +91,7 @@ class BenchmarkSettings:
     source_type: str
     runs: int
     seed_start: int
+    seed_source: str
     data: DataSettings
     search: SearchSettings
     runtime: RuntimeSettings
@@ -349,6 +350,7 @@ def build_settings(
         source_type=group.source_type,
         runs=int(pick(args.runs, config.get("runs"), DEFAULT_DATASET_RUNS if group.source_type == "dataset" else DEFAULT_EXPRESSION_RUNS)),
         seed_start=int(pick(args.seed_start, config.get("seed_start"), DEFAULT_SEED_START)),
+        seed_source=str(pick(getattr(args, "seed_source", None), config.get("seed_source"), "srbench")),
         data=data,
         search=search,
         runtime=runtime,

@@ -6,6 +6,24 @@ NotSpecified  CPU @ 2.0GHz
 Cores:    32
 RAM:      122Gi
 
+=== Hyperparameters (from basic.yaml, NOT paper Table 4) ===
+c               : 6.0    (paper: 1)
+gamma           : 0.5    (paper: 0.5)
+gp_rate         : 0.5    (paper: 0.2)
+mutation_rate   : 0.1    (paper: 0.1)
+exploration_rate: 0.1    (paper: 0.2)
+K               : 500    (paper: 500)
+max_depth       : 6      (paper: 6)
+max_constants   : 10     (paper: 10)
+lm_iterations   : 50     (paper: not stated)
+max_evals       : 2000000
+test_ratio      : 0.5
+sample_multiplier: 2.0
+
+WARNING: upstream repo silently changed c, gp_rate, exploration_rate
+after publication. These results use the repo's YAML, not the paper's
+published settings. See commits 04e143a and 6012a9d.
+
 === Branch commits ===
 d7ace30 Add seed bias benchmark runner and results summarizer
 5f2b5c3 Replace MT19937_64 with PCG64DXSM for MCTS random generator

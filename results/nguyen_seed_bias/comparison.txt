@@ -1,3 +1,16 @@
+Upstream base: origin/main commit 008d0e6 (PKU-CMEGroup/MCTS-4-SR)
+Source: basic.yaml from upstream repo (NOT paper Table 4)
+HP changed by upstream in commits 04e143a and 6012a9d after publication.
+
+Hyperparameters:
+  c=6.0 (paper: 1)  gp_rate=0.5 (paper: 0.2)  exploration_rate=0.1 (paper: 0.2)
+  gamma=0.5  mutation_rate=0.1  K=500  max_depth=6  max_evals=2000000
+  lm_iterations=50  max_constants=10  test_ratio=0.5  sample_multiplier=2.0
+
+Variants:
+  mt19937-srbench: commit 48d10f2 (upstream + seed-source CLI, MT19937 RNG)
+  mt19937-quantum: commit 48d10f2 (same build, quantum seeds)
+  pcg-quantum:     commit 5f2b5c3 (upstream + seed-source + PCG64DXSM RNG)
 
 ======================================================================
   mt19937-srbench  (1200 runs, 12 cases)

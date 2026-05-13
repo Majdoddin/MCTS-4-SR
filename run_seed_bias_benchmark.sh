@@ -1,8 +1,19 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-RESULTS_ROOT="results_seed_bias"
+# Usage: ./run_seed_bias_benchmark.sh [GROUP]
+# GROUP defaults to Nguyen. Examples: Nguyen, Livermore, Jin, NguyenC
+
+GROUP="${1:-Nguyen}"
+GROUP_LOWER=$(echo "$GROUP" | tr '[:upper:]' '[:lower:]')
+
+COMMIT_MT="48d10f2"   # upstream + seed-source CLI (MT19937)
+COMMIT_PCG="5f2b5c3"  # upstream + seed-source + PCG64DXSM
+
+RESULTS_ROOT="results_seed_bias/${GROUP_LOWER}"
 LOG_DIR="$RESULTS_ROOT/logs"
+SUMMARIZE="$(cd "$(dirname "$0")" && pwd)/summarize_results.py"
+
 mkdir -p "$LOG_DIR"
 
 # ── System info ──
@@ -13,43 +24,43 @@ mkdir -p "$LOG_DIR"
     echo "CPU:      $(lscpu | grep 'Model name' | sed 's/.*: *//')"
     echo "Cores:    $(nproc)"
     echo "RAM:      $(free -h | awk '/Mem:/{print $2}')"
-    echo "OS:       $(lsb_release -ds 2>/dev/null || cat /etc/os-release | grep PRETTY | cut -d= -f2)"
     echo ""
-    echo "=== Git Info ==="
-    echo "Branch:   $(git branch --show-current)"
-    echo "Commits:"
-    git log --oneline -5
+    echo "=== Benchmark ==="
+    echo "Group:    $GROUP"
+    echo ""
+    echo "=== Branch commits ==="
+    git log --oneline benchmark/seed-bias -5
+    echo ""
+    echo "=== Hyperparameters (from basic.yaml, NOT paper Table 4) ==="
+    echo "c=6.0 (paper: 1)  gp_rate=0.5 (paper: 0.2)  exploration_rate=0.1 (paper: 0.2)"
+    echo "gamma=0.5  mutation_rate=0.1  K=500  max_depth=6  max_evals=2000000"
+    echo "lm_iterations=50  max_constants=10  test_ratio=0.5  sample_multiplier=2.0"
+    echo "HP changed by upstream in commits 04e143a and 6012a9d after publication."
     echo ""
 } | tee "$RESULTS_ROOT/system_info.txt"
 
-# ── Helper ──
 run_variant() {
     local name="$1"
     local commit="$2"
     local seed_source="$3"
-    local output_dir="$RESULTS_ROOT/$name/nguyen"
+    local output_dir="$RESULTS_ROOT/$name/$GROUP_LOWER"
     local log_file="$LOG_DIR/${name}.log"
 
     echo ""
     echo "================================================================"
     echo "  VARIANT: $name"
-    echo "  Commit:  $commit"
+    echo "  Commit:  $(git log --oneline -1 "$commit")"
     echo "  Seeds:   $seed_source"
+    echo "  Group:   $GROUP"
     echo "  Output:  $output_dir"
     echo "  Started: $(date -Iseconds)"
     echo "================================================================"
 
-    # Checkout and rebuild if needed
-    git checkout "$commit"
-    echo "Building at $(git log --oneline -1)..."
-    pip install -e . --no-build-isolation -q 2>&1 | tail -3
+    git checkout "$commit" --quiet
+    pip install -e . --no-build-isolation --quiet 2>&1 | tail -2
 
-    echo "Build done. Starting benchmark..."
-    echo ""
-
-    # Run benchmark — results are saved incrementally per-case CSV
     python -m imcts.benchmarks \
-        --group Nguyen \
+        --group "$GROUP" \
         --cases all \
         --runs 100 \
         --seed-source "$seed_source" \
@@ -59,35 +70,23 @@ run_variant() {
 
     echo ""
     echo "  Variant $name finished: $(date -Iseconds)"
-    echo "  Results in: $output_dir"
-    echo ""
-
-    # Generate summary
-    python3 summarize_results.py "$output_dir" | tee "$RESULTS_ROOT/${name}_summary.txt"
+    python3 "$SUMMARIZE" "$output_dir" | tee "$RESULTS_ROOT/${name}_summary.txt"
 }
 
-# ── Run all 3 variants ──
+echo "Starting 3-variant seed bias benchmark ($GROUP) at $(date -Iseconds)"
 
-echo "Starting 3-variant seed bias benchmark at $(date -Iseconds)"
-echo ""
+run_variant "mt19937-srbench" "$COMMIT_MT" "srbench"
+run_variant "mt19937-quantum" "$COMMIT_MT" "quantum"
+run_variant "pcg-quantum"     "$COMMIT_PCG" "quantum"
 
-# Variant 1: MT19937 + SRBench seeds (upstream baseline)
-run_variant "mt19937-srbench" "48d10f2" "srbench"
+git checkout benchmark/seed-bias --quiet
 
-# Variant 2: MT19937 + quantum seeds
-run_variant "mt19937-quantum" "48d10f2" "quantum"
-
-# Variant 3: PCG + quantum seeds
-run_variant "pcg-quantum" "5f2b5c3" "quantum"
-
-# ── Final comparison ──
 echo ""
 echo "================================================================"
-echo "  ALL VARIANTS COMPLETE: $(date -Iseconds)"
+echo "  ALL VARIANTS COMPLETE ($GROUP): $(date -Iseconds)"
 echo "================================================================"
-python3 summarize_results.py "$RESULTS_ROOT/mt19937-srbench/nguyen" "$RESULTS_ROOT/mt19937-quantum/nguyen" "$RESULTS_ROOT/pcg-quantum/nguyen" \
+python3 "$SUMMARIZE" \
+    "$RESULTS_ROOT/mt19937-srbench/$GROUP_LOWER" \
+    "$RESULTS_ROOT/mt19937-quantum/$GROUP_LOWER" \
+    "$RESULTS_ROOT/pcg-quantum/$GROUP_LOWER" \
     | tee "$RESULTS_ROOT/comparison.txt"
-
-echo ""
-echo "Results saved in: $RESULTS_ROOT/"
-echo "To copy results: scp -r root@\$(hostname -I | awk '{print \$1}'):$(pwd)/$RESULTS_ROOT ."

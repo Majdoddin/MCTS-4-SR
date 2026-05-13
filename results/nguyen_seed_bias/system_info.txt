@@ -1,0 +1,15 @@
+=== System Info ===
+Date:     2026-05-13T09:14:00+00:00
+Host:     sr-bench
+CPU:      AMD EPYC-Milan Processor
+NotSpecified  CPU @ 2.0GHz
+Cores:    32
+RAM:      122Gi
+
+=== Branch commits ===
+d7ace30 Add seed bias benchmark runner and results summarizer
+5f2b5c3 Replace MT19937_64 with PCG64DXSM for MCTS random generator
+48d10f2 Add --seed-source CLI option with quantum random seeds from ANU QRNG
+008d0e6 chore: add gitattributes for line endings
+fc4aac6 fix(benchmarks):handle NULL in BlackBox benchmark
+

@@ -1,0 +1,15 @@
+benchmark group : Livermore
+cases           : Livermore-3, Livermore-14
+runs per case   : 100
+seed_source     : quantum
+ops             : +,-,*,/,sin,cos,exp,log,R
+c               : 4.0
+gamma           : 0.5
+gp_rate         : 0.2
+mutation_rate   : 0.1
+exploration_rate: 0.2
+matched_pair_n  : 0
+sample_multiplier: 2.0
+test_ratio      : 0.5
+workers         : 32
+output          : results_seed_bias/livermore_mp_old_hp/baseline/livermore

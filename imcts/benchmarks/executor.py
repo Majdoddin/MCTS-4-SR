@@ -265,6 +265,7 @@ def make_regressor_config(settings: BenchmarkSettings):
     cfg.mutation_rate = settings.mutation_rate
     cfg.exploration_rate = settings.exploration_rate
     cfg.succ_error_tol = settings.succ_error_tol
+    cfg.matched_pair_n = settings.matched_pair_n
     return cfg
 
 

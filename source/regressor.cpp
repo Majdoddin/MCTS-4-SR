@@ -26,6 +26,7 @@ FitResult Regressor::fit(std::optional<uint64_t> seed) {
         .mutation_rate    = cfg_.mutation_rate,
         .exploration_rate = cfg_.exploration_rate,
         .succ_error_tol   = cfg_.succ_error_tol,
+        .matched_pair_n   = cfg_.matched_pair_n,
     };
     MCTS mcts(*pset_, evaluator_, gp_manager_, mcts_cfg);
     ExpTree tree(*pset_, cfg_.max_depth, cfg_.max_unary, cfg_.max_constants);

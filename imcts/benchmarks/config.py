@@ -72,6 +72,7 @@ class SearchSettings:
     mutation_rate: float
     exploration_rate: float
     succ_error_tol: float
+    matched_pair_n: int
     max_evals: int
 
 
@@ -173,6 +174,10 @@ class BenchmarkSettings:
     @property
     def succ_error_tol(self) -> float:
         return self.search.succ_error_tol
+
+    @property
+    def matched_pair_n(self) -> int:
+        return self.search.matched_pair_n
 
     @property
     def max_evals(self) -> int:
@@ -323,6 +328,7 @@ def build_settings(
         mutation_rate=float(pick(args.mutation_rate, nested_get(config, "search", "mutation_rate"), DEFAULT_MUTATION_RATE)),
         exploration_rate=float(pick(args.exploration_rate, nested_get(config, "search", "exploration_rate"), DEFAULT_EXPLORATION_RATE)),
         succ_error_tol=float(pick(args.succ_error_tol, nested_get(config, "search", "succ_error_tol"), DEFAULT_SUCC_ERROR_TOL)),
+        matched_pair_n=int(pick(getattr(args, "matched_pair_n", None), nested_get(config, "search", "matched_pair_n"), 0)),
         max_evals=int(
             pick(
                 args.max_evals,

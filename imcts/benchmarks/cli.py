@@ -62,6 +62,8 @@ def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--mutation-rate", type=float, default=None)
     parser.add_argument("--exploration-rate", type=float, default=None)
     parser.add_argument("--succ-error-tol", type=float, default=None)
+    parser.add_argument("--matched-pair-n", type=int, default=None,
+                        help="Matched-pair re-evaluation budget per transition (0=off, default=0).")
     parser.add_argument("--max-wall-time-hours", type=float, default=None)
     parser.add_argument(
         "--workers",

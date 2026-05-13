@@ -283,6 +283,7 @@ def main(
     print(f"gp_rate         : {settings.gp_rate}")
     print(f"mutation_rate   : {settings.mutation_rate}")
     print(f"exploration_rate: {settings.exploration_rate}")
+    print(f"matched_pair_n  : {settings.matched_pair_n}")
     if settings.source_type == "expression":
         print(f"sample_multiplier: {settings.sample_multiplier}")
     print(f"test_ratio      : {settings.test_ratio}")

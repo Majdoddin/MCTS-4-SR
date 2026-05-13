@@ -7,6 +7,9 @@ namespace imcts {
 
 namespace {
 
+// Matched-pair sampling budget is now runtime-configurable via MCTSConfig::matched_pair_n.
+// Set to 0 to disable matched-pair re-evaluation.
+
 bool is_valid_rollout_path(const ExpTree& state, std::span<uint8_t const> path) {
     try {
         ExpTree cloned = state;
@@ -72,10 +75,25 @@ float MCTS::search(ExpTree& tree, RandomGenerator& rng) {
     }
 
     // --- Expansion ---
+    // Snapshot current state BEFORE expansion so matched-pair (if triggered)
+    // can replay each child's completion from the same starting point.
+    ExpTree parent_state_snapshot = state;
+    MCTSNode* parent_for_matched_pair = nullptr;
+
     if (!state.is_terminal()) {
+        MCTSNode* parent_before = node;
+
         node = expand_node(node, state, rng);
         ++node->visits;
         state.add_op(node->move);
+
+        // Transition moment: parent just lost its last unexpanded move AND
+        // has at least 2 expanded children (so there's something to compare).
+        if (cfg_.matched_pair_n > 0
+            && parent_before->unexpanded_moves.empty()
+            && parent_before->children.size() >= 2) {
+            parent_for_matched_pair = parent_before;
+        }
     }
 
     // --- Simulation & Backpropagation ---
@@ -94,7 +112,53 @@ float MCTS::search(ExpTree& tree, RandomGenerator& rng) {
             node->parent->propagate(entry.path, entry.reward);
     }
 
+    // --- Matched-pair re-evaluation at transition moment ---
+    if (parent_for_matched_pair) {
+        matched_pair_reevaluation(parent_for_matched_pair, parent_state_snapshot, rng);
+    }
+
     return best_reward_;
+}
+
+void MCTS::matched_pair_reevaluation(
+    MCTSNode* parent,
+    const ExpTree& parent_state,
+    RandomGenerator& rng)
+{
+    // Draw N completion seeds from the main RNG. The same N seeds are used
+    // to re-evaluate every child, giving Common Random Numbers across siblings
+    // (variance reduction in the between-sibling comparison).
+    std::vector<uint64_t> seeds(cfg_.matched_pair_n);
+    for (int i = 0; i < cfg_.matched_pair_n; ++i) {
+        seeds[i] = static_cast<uint64_t>(rng());
+    }
+
+    for (auto& child : parent->children) {
+        for (uint64_t seed : seeds) {
+            try {
+                ExpTree child_state = parent_state;
+                child_state.add_op(child->move);
+                if (child_state.is_terminal()) {
+                    // Child's move already completed the formula; one evaluation
+                    // is all we can do, and it's deterministic under this seed.
+                    // No benefit to re-running, skip remaining seeds.
+                    float reward = evaluator_->evaluate(child_state.get_op_list(), rng);
+                    child->backpropagate({}, reward);
+                    best_reward_ = std::max(best_reward_, reward);
+                    ++count_num_;
+                    break;
+                }
+                RandomGenerator completion_rng(seed);
+                auto completion = child_state.random_fill(completion_rng);
+                float reward = evaluator_->evaluate(child_state.get_op_list(), completion_rng);
+                child->backpropagate(completion, reward);
+                best_reward_ = std::max(best_reward_, reward);
+                ++count_num_;
+            } catch (...) {
+                // Invalid completion — skip this (seed, child) pair.
+            }
+        }
+    }
 }
 
 float MCTS::rollout_once(

@@ -25,7 +25,8 @@ PYBIND11_MODULE(imcts_py, m) {
         .def_readwrite("lm_iterations",     &RegressorConfig::lm_iterations)
         .def_readwrite("max_evals",         &RegressorConfig::max_evals)
         .def_readwrite("max_time_sec",      &RegressorConfig::max_time_sec)
-        .def_readwrite("succ_error_tol",    &RegressorConfig::succ_error_tol);
+        .def_readwrite("succ_error_tol",    &RegressorConfig::succ_error_tol)
+        .def_readwrite("matched_pair_n",    &RegressorConfig::matched_pair_n);
 
     py::class_<FitResult>(m, "FitResult")
         .def_readonly("best_path",   &FitResult::best_path)

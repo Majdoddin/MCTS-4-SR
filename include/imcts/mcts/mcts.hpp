@@ -20,6 +20,7 @@ struct MCTSConfig {
     float mutation_rate    = 0.2f;
     float exploration_rate = 0.2f;
     float succ_error_tol   = 1e-6f;
+    int   matched_pair_n   = 0;
 };
 
 class MCTS {
@@ -53,6 +54,15 @@ private:
     void  update_terminal_status(MCTSNode* node);
 
     MCTSNode* expand_node(MCTSNode* node, ExpTree& state, RandomGenerator& rng);
+
+    // Matched-pair sampling: re-evaluate all of `parent`'s children with
+    // N shared random-completion seeds drawn from `rng`. Called at the
+    // transition moment when the last unexpanded move of `parent` was just
+    // expanded. `parent_state` is the state snapshot BEFORE the final
+    // expansion (i.e., matching `parent`'s own partial formula).
+    void matched_pair_reevaluation(MCTSNode* parent,
+                                    const ExpTree& parent_state,
+                                    RandomGenerator& rng);
 
     const PrimitiveSet* pset_;
     Evaluator*          evaluator_;

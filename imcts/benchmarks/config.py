@@ -73,6 +73,7 @@ class SearchSettings:
     exploration_rate: float
     succ_error_tol: float
     matched_pair_n: int
+    lm_noise: float
     max_evals: int
 
 
@@ -178,6 +179,10 @@ class BenchmarkSettings:
     @property
     def matched_pair_n(self) -> int:
         return self.search.matched_pair_n
+
+    @property
+    def lm_noise(self) -> float:
+        return self.search.lm_noise
 
     @property
     def max_evals(self) -> int:
@@ -329,6 +334,7 @@ def build_settings(
         exploration_rate=float(pick(args.exploration_rate, nested_get(config, "search", "exploration_rate"), DEFAULT_EXPLORATION_RATE)),
         succ_error_tol=float(pick(args.succ_error_tol, nested_get(config, "search", "succ_error_tol"), DEFAULT_SUCC_ERROR_TOL)),
         matched_pair_n=int(pick(getattr(args, "matched_pair_n", None), nested_get(config, "search", "matched_pair_n"), 0)),
+        lm_noise=float(pick(getattr(args, "lm_noise", None), nested_get(config, "search", "lm_noise"), 0.0)),
         max_evals=int(
             pick(
                 args.max_evals,

@@ -14,6 +14,7 @@ struct EvaluatorConfig {
     std::vector<std::vector<float>> x_cols;   // shape: [n_vars][n_samples]
     std::vector<float>              y;         // shape: [n_samples]
     int lm_iterations = 100;
+    float lm_noise    = 0.0f;
 };
 
 class Evaluator {
@@ -35,6 +36,7 @@ private:
     Eigen::VectorXd target_values_;
     double  sigma_;
     int     lm_iterations_;
+    float   lm_noise_;
 };
 
 } // namespace imcts

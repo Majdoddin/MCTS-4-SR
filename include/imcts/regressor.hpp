@@ -28,6 +28,7 @@ struct RegressorConfig {
     double max_time_sec    = 0.0;
     float succ_error_tol   = 1e-6f;
     int   matched_pair_n   = 0;
+    float lm_noise         = 0.0f;
 };
 
 struct FitResult {

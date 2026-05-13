@@ -12,6 +12,7 @@ Evaluator::Evaluator(const PrimitiveSet& pset, const EvaluatorConfig& cfg)
     , train_range_{0, cfg.y.size()}
     , bridge_(pset)
     , lm_iterations_(cfg.lm_iterations)
+    , lm_noise_(cfg.lm_noise)
 {
     target_values_ = dataset_.y;
 
@@ -21,14 +22,18 @@ Evaluator::Evaluator(const PrimitiveSet& pset, const EvaluatorConfig& cfg)
     if (sigma_ < 1e-10) sigma_ = 1.0;
 }
 
-float Evaluator::evaluate(std::span<uint8_t const> prefix, RandomGenerator& /*rng*/)
+float Evaluator::evaluate(std::span<uint8_t const> prefix, RandomGenerator& rng)
 {
     bridge_.to_tree(prefix, tree_workspace_);
     const bool has_constants = tree_workspace_.num_coefficients() > 0;
 
     if (has_constants) {
-        auto tree = CoefficientOptimizer::optimize(
-            tree_workspace_, dataset_, train_range_, optimizer_workspace_, lm_iterations_);
+        Tree tree = (lm_noise_ > 0.0f)
+            ? CoefficientOptimizer::optimize(
+                tree_workspace_, dataset_, train_range_, optimizer_workspace_, lm_iterations_,
+                lm_noise_, rng)
+            : CoefficientOptimizer::optimize(
+                tree_workspace_, dataset_, train_range_, optimizer_workspace_, lm_iterations_);
         Interpreter::evaluate(tree, dataset_, train_range_, workspace_);
     } else {
         Interpreter::evaluate(tree_workspace_, dataset_, train_range_, workspace_);

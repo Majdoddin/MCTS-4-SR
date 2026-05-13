@@ -10,7 +10,7 @@ Regressor::Regressor(std::vector<std::vector<float>> x_cols,
                      RegressorConfig cfg)
     : cfg_(cfg)
     , pset_(std::make_unique<PrimitiveSet>(make_primitive_set(cfg.ops, static_cast<int>(x_cols.size()))))
-    , evaluator_(*pset_, EvaluatorConfig{x_cols, y, cfg.lm_iterations})
+    , evaluator_(*pset_, EvaluatorConfig{x_cols, y, cfg.lm_iterations, cfg.lm_noise})
     , gp_manager_(*pset_)
 {}
 

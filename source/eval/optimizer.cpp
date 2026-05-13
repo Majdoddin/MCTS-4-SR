@@ -96,4 +96,36 @@ Tree CoefficientOptimizer::optimize(const Tree& tree, const Dataset& ds, Range r
     return result;
 }
 
+Tree CoefficientOptimizer::optimize(const Tree& tree, const Dataset& ds, Range range,
+                                     InterpreterWorkspace& workspace, int max_iter,
+                                     float noise_fraction, RandomGenerator& rng) {
+    auto coeffs = tree.get_coefficients();
+    if (coeffs.empty()) {
+        return tree;
+    }
+
+    Tree result = tree;
+    LMFunctor functor(tree, ds, range, workspace);
+
+    if (noise_fraction > 0.0f) {
+        double sigma = functor.target.array().abs().mean() * noise_fraction;
+        if (sigma < 1e-15) sigma = noise_fraction;
+        std::normal_distribution<double> dist(0.0, sigma);
+        for (int i = 0; i < functor.n_samples; ++i) {
+            functor.target(i) += dist(rng);
+        }
+    }
+
+    Eigen::LevenbergMarquardt<LMFunctor> lm(functor);
+    lm.setMaxfev(max_iter + 2);
+
+    Eigen::VectorXd x = Eigen::Map<Eigen::VectorXd>(coeffs.data(), coeffs.size());
+    lm.minimize(x);
+
+    std::vector<Scalar> opt_coeffs(x.data(), x.data() + x.size());
+    result.set_coefficients(opt_coeffs);
+
+    return result;
+}
+
 } // namespace imcts

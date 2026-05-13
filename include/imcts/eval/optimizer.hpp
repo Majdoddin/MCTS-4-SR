@@ -15,6 +15,9 @@ public:
                          int max_iter = 10);
     static Tree optimize(const Tree& tree, const Dataset& ds, Range range,
                          InterpreterWorkspace& workspace, int max_iter);
+    static Tree optimize(const Tree& tree, const Dataset& ds, Range range,
+                         InterpreterWorkspace& workspace, int max_iter,
+                         float noise_fraction, RandomGenerator& rng);
 };
 
 } // namespace imcts
